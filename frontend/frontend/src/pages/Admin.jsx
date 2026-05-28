@@ -32,7 +32,7 @@ function Admin() {
       formData.append("video", videoFile);
 
       const response = await axios.post(
-        "https://13.206.238.19:5000/api/movies",
+        "http://13.206.238.19:5000/api/movies",
         formData,
         {
           headers: {

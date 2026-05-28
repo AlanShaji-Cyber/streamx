@@ -63,7 +63,7 @@ function Watch() {
             >
 
               <source
-                src={`https://13.206.238.19:5000/uploads/${movie.video_url}`}
+                src={`http://13.206.238.19:5000/uploads/${movie.video_url}`}
                 type="video/mp4"
               />
 
