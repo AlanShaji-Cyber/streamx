@@ -8,7 +8,15 @@ const authRoutes = require("./routes/authRoutes");
 
 const movieRoutes = require("./routes/movieRoutes");
 
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://streamx-dun-theta.vercel.app",
+    ],
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 app.use("/uploads", express.static("uploads"));
