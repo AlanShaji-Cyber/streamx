@@ -19,7 +19,7 @@ function Home() {
     try {
 
       const res = await axios.get(
-        "http://13.206.238.19:5000/api/movies"
+        "https://13.206.238.19:5000/api/movies"
       );
 
       setMovies(res.data);
