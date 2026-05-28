@@ -8,7 +8,9 @@ function Watch() {
   const movie = location.state;
 
   if (!movie) {
+
     return (
+
       <div className="bg-black min-h-screen text-white flex justify-center items-center flex-col gap-5">
 
         <h1 className="text-4xl font-bold">
@@ -17,38 +19,64 @@ function Watch() {
 
         <button
           onClick={() => navigate("/home")}
-          className="bg-purple-600 px-6 py-3 rounded-xl"
+          className="bg-purple-600 hover:bg-purple-700 px-6 py-3 rounded-xl"
         >
           Go Back
         </button>
 
       </div>
+
     );
   }
 
   return (
-    <div className="bg-black min-h-screen text-white p-10">
 
-      <h1 className="text-5xl font-bold text-purple-500 mb-8">
-        {movie.title}
-      </h1>
+    <div className="bg-black min-h-screen text-white">
 
-      <video
-        controls
-        autoPlay
-        className="w-full rounded-2xl"
-      >
-        <source
-          src={`http://localhost:5000/uploads/${movie.video}`}
-          type="video/mp4"
-        />
-      </video>
+      <div className="p-4 md:p-8">
 
-      <p className="text-zinc-400 mt-6 text-xl">
-        Genre: {movie.genre}
-      </p>
+        {/* BACK BUTTON */}
+
+        <button
+          onClick={() => navigate("/home")}
+          className="mb-6 bg-purple-600 hover:bg-purple-700 px-5 py-3 rounded-xl duration-300 font-semibold"
+        >
+          ← Back
+        </button>
+
+        <div className="max-w-[1700px] mx-auto">
+
+          {/* MOVIE TITLE */}
+
+          <h1 className="text-5xl md:text-7xl font-bold text-white mb-8">
+            {movie.title}
+          </h1>
+
+          {/* VIDEO PLAYER */}
+
+          <div className="w-full rounded-3xl overflow-hidden shadow-2xl bg-black">
+
+            <video
+              controls
+              autoPlay
+              className="w-full h-[90vh] bg-black"
+            >
+
+              <source
+                src={`http://13.206.238.19:5000/uploads/${movie.video_url}`}
+                type="video/mp4"
+              />
+
+            </video>
+
+          </div>
+
+        </div>
+
+      </div>
 
     </div>
+
   );
 }
 

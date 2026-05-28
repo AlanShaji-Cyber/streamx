@@ -1,7 +1,6 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-
-const users = [];
+const db = require("../config/db");
 
 const register = async (req, res) => {
 
@@ -11,16 +10,26 @@ const register = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = {
-      email,
-      password: hashedPassword,
-    };
+    const sql =
+      "INSERT INTO users (email, password) VALUES (?, ?)";
 
-    users.push(user);
+    db.query(
+      sql,
+      [email, hashedPassword],
+      (err, result) => {
 
-    res.json({
-      message: "User Registered",
-    });
+        if (err) {
+          return res.status(500).json({
+            message: "Registration Failed",
+          });
+        }
+
+        res.json({
+          message: "User Registered",
+        });
+
+      }
+    );
 
   } catch (error) {
 
@@ -37,36 +46,47 @@ const login = async (req, res) => {
 
     const { email, password } = req.body;
 
-    const user = users.find(
-      (u) => u.email === email
-    );
+    const sql =
+      "SELECT * FROM users WHERE email = ?";
 
-    if (!user) {
-      return res.status(400).json({
-        message: "User Not Found",
+    db.query(sql, [email], async (err, results) => {
+
+      if (err) {
+        return res.status(500).json({
+          message: "Server Error",
+        });
+      }
+
+      if (results.length === 0) {
+        return res.status(400).json({
+          message: "User Not Found",
+        });
+      }
+
+      const user = results[0];
+
+      const isMatch = await bcrypt.compare(
+        password,
+        user.password
+      );
+
+      if (!isMatch) {
+        return res.status(400).json({
+          message: "Invalid Password",
+        });
+      }
+
+      const token = jwt.sign(
+        { email: user.email },
+        "streamxsecret",
+        { expiresIn: "7d" }
+      );
+
+      res.json({
+        token,
+        message: "Login Success",
       });
-    }
 
-    const isMatch = await bcrypt.compare(
-      password,
-      user.password
-    );
-
-    if (!isMatch) {
-      return res.status(400).json({
-        message: "Invalid Password",
-      });
-    }
-
-    const token = jwt.sign(
-      { email: user.email },
-      "streamxsecret",
-      { expiresIn: "7d" }
-    );
-
-    res.json({
-      token,
-      message: "Login Success",
     });
 
   } catch (error) {

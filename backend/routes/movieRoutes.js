@@ -22,19 +22,30 @@ const upload = multer({ storage });
 
 router.post("/", upload.single("video"), (req, res) => {
 
-  const { title, genre, thumbnail } = req.body;
+  const {
+    title,
+    genre,
+    thumbnail,
+    description,
+  } = req.body;
 
   const video = req.file.filename;
 
   const sql = `
     INSERT INTO movies
-    (title, genre, thumbnail, video_url)
-    VALUES (?, ?, ?, ?)
+    (title, genre, thumbnail, description, video_url)
+    VALUES (?, ?, ?, ?, ?)
   `;
 
   db.query(
     sql,
-    [title, genre, thumbnail, video],
+    [
+      title,
+      genre,
+      thumbnail,
+      description,
+      video,
+    ],
     (err, result) => {
 
       if (err) {

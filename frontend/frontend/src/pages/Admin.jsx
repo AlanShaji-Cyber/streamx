@@ -7,6 +7,7 @@ function Admin() {
     title: "",
     genre: "",
     thumbnail: "",
+    description: "",
   });
 
   const [videoFile, setVideoFile] = useState(null);
@@ -22,17 +23,16 @@ function Admin() {
 
     try {
 
-      console.log(videoFile);
-
       const formData = new FormData();
 
       formData.append("title", movie.title);
       formData.append("genre", movie.genre);
       formData.append("thumbnail", movie.thumbnail);
+      formData.append("description", movie.description);
       formData.append("video", videoFile);
 
       const response = await axios.post(
-        "http://localhost:5000/api/movies",
+        "http://13.206.238.19:5000/api/movies",
         formData,
         {
           headers: {
@@ -48,7 +48,6 @@ function Admin() {
     } catch (error) {
 
       console.log(error);
-      console.log(error.response);
 
       alert("Upload Failed");
     }
@@ -92,11 +91,18 @@ function Admin() {
             className="p-4 rounded-lg bg-black text-white outline-none"
           />
 
+          <textarea
+            name="description"
+            value={movie.description}
+            onChange={handleChange}
+            placeholder="Movie Description"
+            className="p-4 rounded-lg bg-black text-white outline-none h-32"
+          />
+
           <input
             type="file"
             accept="video/mp4"
             onChange={(e) => {
-              console.log(e.target.files[0]);
               setVideoFile(e.target.files[0]);
             }}
             className="p-4 rounded-lg bg-black text-white"
