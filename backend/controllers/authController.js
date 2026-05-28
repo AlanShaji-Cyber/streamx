@@ -2,36 +2,67 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const db = require("../config/db");
 
+
+// REGISTER
+
 const register = async (req, res) => {
 
   try {
 
     const { email, password } = req.body;
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // CHECK USER EXISTS
 
-    const sql =
-      "INSERT INTO users (email, password) VALUES (?, ?)";
+    const checkSql =
+      "SELECT * FROM users WHERE email = ?";
 
-    db.query(
-      sql,
-      [email, hashedPassword],
-      (err, result) => {
+    db.query(checkSql, [email], async (err, result) => {
 
-        if (err) {
-          return res.status(500).json({
-            message: "Registration Failed",
-          });
-        }
-
-        res.json({
-          message: "User Registered",
+      if (err) {
+        return res.status(500).json({
+          message: "Database Error",
         });
-
       }
-    );
+
+      if (result.length > 0) {
+        return res.status(400).json({
+          message: "User Already Exists",
+        });
+      }
+
+      // HASH PASSWORD
+
+      const hashedPassword =
+        await bcrypt.hash(password, 10);
+
+      // INSERT USER
+
+      const insertSql =
+        "INSERT INTO users (email, password) VALUES (?, ?)";
+
+      db.query(
+        insertSql,
+        [email, hashedPassword],
+        (err, result) => {
+
+          if (err) {
+            return res.status(500).json({
+              message: "Database Error",
+            });
+          }
+
+          res.json({
+            message: "Registration Success",
+          });
+
+        }
+      );
+
+    });
 
   } catch (error) {
+
+    console.log(error);
 
     res.status(500).json({
       message: "Server Error",
@@ -39,6 +70,9 @@ const register = async (req, res) => {
 
   }
 };
+
+
+// LOGIN
 
 const login = async (req, res) => {
 
@@ -49,26 +83,27 @@ const login = async (req, res) => {
     const sql =
       "SELECT * FROM users WHERE email = ?";
 
-    db.query(sql, [email], async (err, results) => {
+    db.query(sql, [email], async (err, result) => {
 
       if (err) {
         return res.status(500).json({
-          message: "Server Error",
+          message: "Database Error",
         });
       }
 
-      if (results.length === 0) {
+      if (result.length === 0) {
         return res.status(400).json({
           message: "User Not Found",
         });
       }
 
-      const user = results[0];
+      const user = result[0];
 
-      const isMatch = await bcrypt.compare(
-        password,
-        user.password
-      );
+      const isMatch =
+        await bcrypt.compare(
+          password,
+          user.password
+        );
 
       if (!isMatch) {
         return res.status(400).json({
@@ -90,6 +125,8 @@ const login = async (req, res) => {
     });
 
   } catch (error) {
+
+    console.log(error);
 
     res.status(500).json({
       message: "Server Error",
