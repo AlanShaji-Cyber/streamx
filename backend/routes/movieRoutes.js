@@ -3,78 +3,82 @@ const router = express.Router();
 const multer = require("multer");
 const db = require("../config/db");
 
-const storage = multer.diskStorage({
+const { PutObjectCommand } = require("@aws-sdk/client-s3");
+const s3 = require("../config/s3");
 
-  destination: (req, file, cb) => {
-    cb(null, "uploads/");
-  },
-
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname);
-  },
-
-});
-
+// Store file in memory before sending to S3
+const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-
 // UPLOAD MOVIE
-
-router.post("/", upload.single("video"), (req, res) => {
-
-  const {
-    title,
-    genre,
-    thumbnail,
-    description,
-  } = req.body;
-
-  const video = req.file.filename;
-
-  const sql = `
-    INSERT INTO movies
-    (title, genre, thumbnail, description, video_url)
-    VALUES (?, ?, ?, ?, ?)
-  `;
-
-  db.query(
-    sql,
-    [
+router.post("/", upload.single("video"), async (req, res) => {
+  try {
+    const {
       title,
       genre,
       thumbnail,
       description,
-      video,
-    ],
-    (err, result) => {
+    } = req.body;
 
-      if (err) {
+    const fileName = `${Date.now()}-${req.file.originalname}`;
 
-        console.log(err);
+    await s3.send(
+      new PutObjectCommand({
+        Bucket: process.env.AWS_BUCKET_NAME,
+        Key: fileName,
+        Body: req.file.buffer,
+        ContentType: req.file.mimetype,
+      })
+    );
 
-        return res.status(500).json({
-          message: "Database Error",
+    const videoUrl = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
+
+    const sql = `
+      INSERT INTO movies
+      (title, genre, thumbnail, description, video_url)
+      VALUES (?, ?, ?, ?, ?)
+    `;
+
+    db.query(
+      sql,
+      [
+        title,
+        genre,
+        thumbnail,
+        description,
+        videoUrl,
+      ],
+      (err, result) => {
+        if (err) {
+          console.log(err);
+
+          return res.status(500).json({
+            message: "Database Error",
+          });
+        }
+
+        res.json({
+          message: "Movie Uploaded Successfully",
+          videoUrl,
         });
       }
+    );
+  } catch (error) {
+    console.log(error);
 
-      res.json({
-        message: "Movie Uploaded Successfully",
-      });
-    }
-  );
+    res.status(500).json({
+      message: "S3 Upload Failed",
+      error: error.message,
+    });
+  }
 });
 
-
 // GET MOVIES
-
 router.get("/", (req, res) => {
-
   db.query(
     "SELECT * FROM movies",
     (err, results) => {
-
       if (err) {
-
         console.log(err);
 
         return res.status(500).json({
