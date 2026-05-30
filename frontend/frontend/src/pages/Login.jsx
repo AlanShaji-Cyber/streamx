@@ -29,7 +29,7 @@ function Login() {
       if (isLogin) {
 
         const res = await axios.post(
-          "http://13.206.238.19:5000/api/auth/login",
+          "http://13.207.185.193:5001/api/auth/login",
           formData
         );
 
@@ -45,7 +45,7 @@ function Login() {
       } else {
 
         await axios.post(
-          "http://13.206.238.19:5000/api/auth/register",
+          "http://13.207.185.193:5001/api/auth/register",
           formData
         );
 
